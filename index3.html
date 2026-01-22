@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaStudy - Trợ thủ Sinh viên Dược</title>
+    <style>
+        /* --- 1. CSS: GIAO DIỆN & MÀU SẮC --- */
+        :root {
+            --primary: #0056b3;      /* Xanh dương đậm (Y tế) */
+            --secondary: #e3f2fd;    /* Xanh nền nhạt */
+            --white: #ffffff;
+            --text: #333333;
+            --danger: #dc3545;       /* Màu đỏ (Sai/Cảnh báo) */
+            --success: #28a745;      /* Màu xanh lá (Đúng) */
+            --warning: #ffc107;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        body { background-color: var(--secondary); color: var(--text); line-height: 1.6; }
+
+        /* Header & Navigation */
+        header { background: var(--primary); color: var(--white); padding: 1rem 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        nav { width: 90%; max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        nav h1 { font-size: 1.5rem; cursor: pointer; }
+        nav ul { list-style: none; display: flex; gap: 15px; }
+        nav ul li a { color: var(--white); text-decoration: none; font-weight: 500; cursor: pointer; padding: 5px 10px; border-radius: 4px; transition: 0.3s; }
+        nav ul li a:hover, nav ul li a.active { background: rgba(255,255,255,0.2); }
+
+        /* Layout Container */
+        .container { width: 90%; max-width: 1000px; margin: 2rem auto; background: var(--white); padding: 2rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 400px; }
+
+        /* Sections (Ẩn hiện các phần) */
+        .section { display: none; animation: fadeIn 0.5s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Common Elements */
+        h2 { color: var(--primary); margin-bottom: 1rem; border-bottom: 2px solid var(--secondary); padding-bottom: 5px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        .btn:hover { opacity: 0.9; }
+
+        /* --- TRANG CHỦ & THƯ VIỆN --- */
+        .grid-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: #f8f9fa; border: 1px solid #ddd; padding: 20px; border-radius: 8px; text-align: center; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .card h3 { color: var(--primary); margin-bottom: 10px; }
+
+        /* --- FLASHCARD --- */
+        .flashcard-area { perspective: 1000px; width: 100%; max-width: 500px; height: 300px; margin: 20px auto; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flashcard-inner.flipped { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        .flashcard-front { background: var(--white); border: 2px solid var(--primary); color: var(--primary); }
+        .flashcard-front h3 { font-size: 2rem; margin-bottom: 10px; }
+        .flashcard-front span { background: var(--secondary); padding: 5px 10px; border-radius: 20px; font-size: 0.9rem; }
+        
+        .flashcard-back { background: var(--primary); color: white; transform: rotateY(180deg); text-align: left; align-items: flex-start; }
+        .flashcard-back p { margin: 5px 0; font-size: 1rem; }
+        
+        .controls { text-align: center; margin-top: 20px; }
+        .controls button { margin: 0 10px; }
+
+        /* --- TRẮC NGHIỆM --- */
+        .quiz-option { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #f1f1f1; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; text-align: left; transition: 0.2s; font-size: 1rem; }
+        .quiz-option:hover { background: #e2e6ea; }
+        .quiz-option.correct { background: var(--success); color: white; border-color: var(--success); }
+        .quiz-option.wrong { background: var(--danger); color: white; border-color: var(--danger); }
+        #explanation { display: none; margin-top: 15px; padding: 15px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 6px; color: #856404; }
+
+        /* --- LỘ TRÌNH --- */
+        .timeline ul { list-style: none; border-left: 3px solid var(--primary); padding-left: 20px; margin-left: 10px; }
+        .timeline li { margin-bottom: 20px; position: relative; }
+        .timeline li::before { content: "•"; color: var(--primary); font-size: 2rem; position: absolute; left: -29px; top: -8px; }
+        .ethics-box { background: #fff5f5; border-left: 5px solid var(--danger); padding: 15px; margin-top: 20px; }
+
+        /* Footer */
+        footer { text-align: center; padding: 20px; background: #333; color: white; font-size: 0.9rem; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <h1 onclick="showSection('home')">PharmaStudy 💊</h1>
+            <ul>
+                <li><a onclick="showSection('home')" class="nav-link active">Trang chủ</a></li>
+                <li><a onclick="showSection('library')" class="nav-link">Thư viện</a></li>
+                <li><a onclick="showSection('flashcard')" class="nav-link">Flashcard</a></li>
+                <li><a onclick="showSection('quiz')" class="nav-link">Trắc nghiệm</a></li>
+                <li><a onclick="showSection('roadmap')" class="nav-link">Lộ trình</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        
+        <div id="home" class="section active">
+            <div style="text-align: center; padding: 20px;">
+                <h2 style="border: none;">Chào mừng bạn đến với PharmaStudy</h2>
+                <p>Nền tảng hỗ trợ học tập toàn diện dành riêng cho sinh viên Dược.</p>
+                <br>
+                <div class="grid-box">
+                    <div class="card" onclick="showSection('library')" style="cursor: pointer;">
+                        <h3>📚 Thư viện</h3>
+                        <p>Tổng hợp lý thuyết các môn chuyên ngành.</p>
+                    </div>
+                    <div class="card" onclick="showSection('flashcard')" style="cursor: pointer;">
+                        <h3>💊 Ghi nhớ thuốc</h3>
+                        <p>Học tên thuốc, công dụng qua Flashcard.</p>
+                    </div>
+                    <div class="card" onclick="showSection('quiz')" style="cursor: pointer;">
+                        <h3>✍️ Luyện thi</h3>
+                        <p>Ngân hàng câu hỏi trắc nghiệm có giải thích.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="library" class="section">
+    <h2>Thư viện chuyên ngành Dược</h2>
+    <p>Tổng hợp các kiến thức cốt lõi giúp bạn ôn tập nhanh.</p>
+    
+    <div class="grid-box">
+        <div class="card">
+            <h3>Dược lý học</h3>
+            <p>Cơ chế, chỉ định và tác dụng phụ của các nhóm thuốc.</p>
+            <button class="btn" onclick="openLibrary('duocly')">Xem tóm tắt</button>
+        </div>
+        <div class="card">
+            <h3>Hóa dược</h3>
+            <p>Cấu trúc hóa học và liên quan giữa cấu trúc - tác dụng (SAR).</p>
+            <button class="btn" onclick="openLibrary('hoaduoc')">Xem tóm tắt</button>
+        </div>
+        <div class="card">
+            <h3>Bào chế</h3>
+            <p>Kỹ thuật sản xuất các dạng thuốc và sinh dược học.</p>
+            <button class="btn" onclick="openLibrary('baoche')">Xem tóm tắt</button>
+        </div>
+        <div class="card">
+            <h3>Dược liệu</h3>
+            <p>Phân loại, thành phần hóa học và công dụng của cây thuốc.</p>
+            <button class="btn" onclick="openLibrary('duoclieu')">Xem tóm tắt</button>
+        </div>
+        <div class="card">
+            <h3>Kiểm nghiệm</h3>
+            <p>Các phương pháp đánh giá chất lượng thuốc theo Dược điển.</p>
+            <button class="btn" onclick="openLibrary('kiemnghiem')">Xem tóm tắt</button>
+        </div>
+    </div>
+
+    <div id="library-detail" style="display:none; margin-top: 30px; border-top: 2px solid var(--primary); padding-top: 20px;">
+        <h3 id="lib-title" style="color: var(--primary);">Tên môn học</h3>
+        <div id="lib-content" style="background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px inset #eee;">
+            </div>
+        <button class="btn" style="background: #666;" onclick="document.getElementById('library-detail').style.display='none'">Đóng lại</button>
+    </div>
+</div>
+
+        <div id="flashcard" class="section">
+            <h2 style="text-align: center; border: none;">Ôn tập thuốc</h2>
+            <p style="text-align: center;">Nhấn vào thẻ để lật xem mặt sau</p>
+
+            <div class="flashcard-area" onclick="flipCard()">
+                <div class="flashcard-inner" id="fc-inner">
+                    <div class="flashcard-front">
+                        <h3 id="fc-name">Tên thuốc</h3>
+                        <span id="fc-group">Nhóm thuốc</span>
+                    </div>
+                    <div class="flashcard-back">
+                        <p><strong>✨ Công dụng:</strong> <span id="fc-use">...</span></p>
+                        <p><strong>⚠️ Tác dụng phụ:</strong> <span id="fc-side">...</span></p>
+                        <p><strong>⛔ Chống chỉ định:</strong> <span id="fc-contra">...</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="prevCard()">&#8592; Trước</button>
+                <span id="fc-count" style="font-weight: bold; margin: 0 15px;">1/3</span>
+                <button class="btn" onclick="nextCard()">Sau &#8594;</button>
+            </div>
+        </div>
+
+        <div id="quiz" class="section">
+            <h2>Kiểm tra kiến thức</h2>
+            <div id="quiz-box">
+                <h3 id="q-text" style="margin-bottom: 20px; color: var(--text);">Câu hỏi...</h3>
+                <div id="q-options">
+                    </div>
+                <div id="explanation">
+                    <strong>💡 Giải thích:</strong> <span id="explain-text">...</span>
+                </div>
+                <button class="btn" id="btn-next-quiz" onclick="nextQuestion()" style="display: none;">Câu tiếp theo</button>
+            </div>
+        </div>
+
+        <div id="roadmap" class="section">
+            <h2>Lộ trình học tập 5 năm</h2>
+            <div class="timeline">
+                <ul>
+                    <li><strong>Năm 1:</strong> Khoa học cơ bản (Hóa đại cương, Sinh học di truyền, Giải phẫu - Sinh lý).</li>
+                    <li><strong>Năm 2:</strong> Cơ sở ngành (Hóa hữu cơ, Hóa phân tích, Vi sinh, Ký sinh trùng).</li>
+                    <li><strong>Năm 3:</strong> Chuyên ngành (Dược lý 1, Bào chế 1, Dược liệu 1, Hóa dược 1).</li>
+                    <li><strong>Năm 4:</strong> Dược lâm sàng, Quản lý kinh tế dược, Pháp chế dược.</li>
+                    <li><strong>Năm 5:</strong> Thực tập tốt nghiệp (Nhà thuốc/Bệnh viện/Nhà máy) & Khóa luận.</li>
+                </ul>
+            </div>
+
+            <div class="ethics-box">
+                <h3>⚠️ Đạo đức hành nghề Dược</h3>
+                <p><em>"Dược sĩ phải đặt lợi ích và sự an toàn của người bệnh lên trên lợi nhuận."</em></p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>Tư vấn sử dụng thuốc An toàn - Hợp lý - Hiệu quả.</li>
+                    <li>Không bán thuốc giả, thuốc kém chất lượng.</li>
+                    <li>Giữ bí mật thông tin riêng tư của bệnh nhân.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2024 PharmaStudy. Nội dung phục vụ mục đích học tập.</p>
+    </footer>
+
+    <script>
+        // --- LOGIC CHUYỂN TAB ---
+        function showSection(sectionId) {
+            // Ẩn tất cả section
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            // Hiện section được chọn
+            document.getElementById(sectionId).classList.add('active');
+
+            // Cập nhật menu active
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            // Tìm link tương ứng để active (đơn giản hóa bằng cách loop)
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if(link.getAttribute('onclick').includes(sectionId)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+// --- DỮ LIỆU THƯ VIỆN ---
+const libraryData = {
+    'duocly': `
+        <h4>1. Các quá trình Dược động học (ADME):</h4>
+        <ul>
+            <li><b>Hấp thu:</b> Qua đường tiêu hóa, tiêm, ngoài da... phụ thuộc pKa thuốc và pH môi trường.</li>
+            <li><b>Phân bố:</b> Thuốc tự do và thuốc gắn protein huyết tương (chủ yếu là Albumin).</li>
+            <li><b>Chuyển hóa:</b> Chủ yếu tại gan qua 2 pha (Pha 1: Oxy hóa/Khử qua CYP450; Pha 2: Liên hợp).</li>
+            <li><b>Thải trừ:</b> Qua thận (quan trọng nhất), mật, phổi, mồ hôi.</li>
+        </ul>
+        <br>
+        <h4>2. Các nhóm thuốc chính:</h4>
+        <p>Kháng sinh, Thuốc tim mạch, Thuốc hạ đường huyết, NSAIDs, Corticoids...</p>
+    `,
+    'hoaduoc': `
+        <h4>1. Kháng sinh Beta-lactam:</h4>
+        <p>Cấu trúc có vòng 4 cạnh (Azetidin-2-on). Liên quan cấu trúc: Vòng Beta-lactam phải còn nguyên vẹn mới có tác dụng kháng khuẩn.</p>
+        <br>
+        <h4>2. Thuốc giảm đau NSAIDs:</h4>
+        <p>Nhóm dẫn chất Acid Salicylic (Aspirin), dẫn chất Acid Propionic (Ibuprofen), dẫn chất Pyrazolon...</p>
+        
+        <br>
+        <h4>3. Định tính & Định lượng:</h4>
+        <p>Sử dụng phương pháp đo phổ IR, UV-VIS, Sắc ký lỏng hiệu năng cao (HPLC).</p>
+    `,
+    'baoche': `
+        <h4>1. Các dạng thuốc:</h4>
+        <ul>
+            <li><b>Dạng lỏng:</b> Dung dịch, hỗn dịch, nhũ tương, siro.</li>
+            <li><b>Dạng rắn:</b> Thuốc bột, thuốc cốm, viên nén, viên nang.</li>
+            <li><b>Dạng mềm:</b> Thuốc mỡ, kem, gel.</li>
+        </ul>
+        <br>
+        <h4>2. Quy trình sản xuất viên nén:</h4>
+        <p>Xát hạt ướt -> Sấy hạt -> Sửa hạt -> Trộn tá dược trơn -> Dập viên -> Bao phim (nếu có).</p>
+        
+    `,
+    'duoclieu': `
+        <h4>1. Các nhóm hoạt chất:</h4>
+        <ul>
+            <li><b>Alkaloid:</b> Có tính kiềm, chứa Nitơ, tác dụng mạnh (Morphin, Quinin, Berberin).</li>
+            <li><b>Glycosid tim:</b> Tác dụng lên tim (Digoxin, Digitoxin).</li>
+            <li><b>Saponin:</b> Tạo bọt, long đờm, tăng hấp thu (Nhân sâm, Cam thảo).</li>
+            <li><b>Flavonoid:</b> Chống oxy hóa, bền thành mạch (Hoa hòe).</li>
+        </ul>
+        <br>
+        <h4>2. Phương pháp chiết xuất:</h4>
+        <p>Ngâm kiệt, sắc, hãm, chưng cất lôi cuốn hơi nước (tinh dầu).</p>
+    `,
+    'kiemnghiem': `
+        <h4>1. Tiêu chuẩn chất lượng:</h4>
+        <p>Độ tinh khiết, định tính hoạt chất, định lượng hàm lượng, độ rã, độ hòa tan.</p>
+        <br>
+        <h4>2. Các sai số trong kiểm nghiệm:</h4>
+        <p>Sai số hệ thống (do dụng cụ, phương pháp) và sai số ngẫu nhiên.</p>
+        <br>
+        <h4>3. Dược điển:</h4>
+        <p>Bộ tiêu chuẩn quốc gia về thuốc (DĐVN V). Mọi lô thuốc sản xuất ra phải đạt tiêu chuẩn mới được lưu thông.</p>
+    `
+};
+
+function openLibrary(key) {
+    const detailBox = document.getElementById('library-detail');
+    const title = document.getElementById('lib-title');
+    const content = document.getElementById('lib-content');
+
+    const titles = {
+        'duocly': 'Tóm tắt Dược lý học',
+        'hoaduoc': 'Tóm tắt Hóa dược',
+        'baoche': 'Tóm tắt Kỹ thuật Bào chế',
+        'duoclieu': 'Tóm tắt Dược liệu học',
+        'kiemnghiem': 'Tóm tắt Kiểm nghiệm thuốc'
+    };
+
+    title.innerText = titles[key];
+    content.innerHTML = libraryData[key];
+    detailBox.style.display = 'block';
+    
+    // Cuộn xuống để xem nội dung
+    detailBox.scrollIntoView({ behavior: 'smooth' });
+}
+        // --- DỮ LIỆU FLASHCARD ---
+        const drugs = [
+    // NHÓM GIẢM ĐAU - KHÁNG VIÊM
+    { name: "Paracetamol", group: "Giảm đau, hạ sốt", use: "Đau đầu, sốt nhẹ đến vừa.", side: "Độc với gan nếu quá liều.", contra: "Suy gan nặng." },
+    { name: "Ibuprofen", group: "NSAIDs", use: "Giảm đau, kháng viêm, hạ sốt.", side: "Loét dạ dày, kéo dài thời gian chảy máu.", contra: "Loét dạ dày tiến triển." },
+    { name: "Morphin", group: "Giảm đau gây nghiện", use: "Đau nặng (ung thư, sau mổ).", side: "Táo bón, ức chế hô hấp.", contra: "Suy hô hấp nặng." },
+    
+    // NHÓM KHÁNG SINH
+    { name: "Amoxicillin", group: "Beta-lactam", use: "Nhiễm khuẩn hô hấp, tai mũi họng.", side: "Dị ứng, tiêu chảy.", contra: "Dị ứng Penicillin." },
+    { name: "Ciprofloxacin", group: "Quinolon", use: "Nhiễm khuẩn tiết niệu, tiêu hóa.", side: "Đau khớp, đứt gân gót (hiếm).", contra: "Trẻ em dưới 18 tuổi." },
+    { name: "Azithromycin", group: "Macrolid", use: "Nhiễm khuẩn đường hô hấp, da.", side: "Nôn nao, tiêu chảy.", contra: "Quá mẫn với macrolid." },
+    { name: "Cefuroxim", group: "Cephalosporin thế hệ 2", use: "Nhiễm khuẩn hô hấp, tiết niệu.", side: "Phản ứng dị ứng.", contra: "Tiền sử sốc phản vệ với penicillin." },
+
+    // NHÓM TIM MẠCH - HUYẾT ÁP
+    { name: "Amlodipine", group: "Chẹn kênh Calci", use: "Điều trị tăng huyết áp, đau thắt ngực.", side: "Phù chân, nhức đầu.", contra: "Huyết áp thấp nặng." },
+    { name: "Enalapril", group: "Ức chế men chuyển (ACEI)", use: "Tăng huyết áp, suy tim.", side: "Ho khan kéo dài.", contra: "Phụ nữ có thai." },
+    { name: "Atorvastatin", group: "Statin", use: "Hạ mỡ máu (LDL-C).", side: "Đau cơ, tăng men gan.", contra: "Bệnh gan tiến triển." },
+    { name: "Digoxin", group: "Glycosid tim", use: "Suy tim, rung nhĩ.", side: "Rối loạn nhịp tim, nhìn vàng.", contra: "Block nhĩ thất độ 2-3." },
+
+    // NHÓM TIÊU HÓA
+    { name: "Omeprazole", group: "Ức chế bơm Proton (PPI)", use: "Loét dạ dày, trào ngược (GERD).", side: "Đau đầu, rối loạn tiêu hóa.", contra: "Quá mẫn với thuốc." },
+    { name: "Domperidone", group: "Chống nôn", use: "Đầy bụng, khó tiêu, buồn nôn.", side: "Chảy sữa (tăng prolactin).", contra: "U tuyến yên." },
+
+    // NHÓM HÔ HẤP
+    { name: "Salbutamol", group: "Kích thích Beta-2", use: "Cắt cơn hen phế quản.", side: "Run tay, nhịp tim nhanh.", contra: "Dọa sảy thai (dạng tiêm)." },
+    { name: "Bromhexin", group: "Long đờm", use: "Rối loạn tiết dịch phế quản.", side: "Đau dạ dày.", contra: "Viêm loét dạ dày nặng." },
+
+    // NHÓM KHÁC
+    { name: "Metformin", group: "Biguanide", use: "Đái tháo đường type 2.", side: "Nhiễm toan lactic, đầy hơi.", contra: "Suy thận nặng." },
+    { name: "Gliclazide", group: "Sulfonylurea", use: "Hạ đường huyết type 2.", side: "Nguy cơ hạ đường huyết quá mức.", contra: "ĐTĐ type 1." },
+    { name: "Prednisolone", group: "Corticoid", use: "Chống viêm, dị ứng, ức chế miễn dịch.", side: "Hội chứng Cushing, loãng xương.", contra: "Nhiễm nấm toàn thân." },
+    { name: "Diazepam", group: "Benzodiazepin", use: "An thần, mất ngủ, chống co giật.", side: "Buồn ngủ, lệ thuộc thuốc.", contra: "Nhược cơ." },
+    { name: "Loratadine", group: "Kháng Histamin H1", use: "Viêm mũi dị ứng, mề đay.", side: "Khô mồm (ít).", contra: "Trẻ dưới 2 tuổi." }
+];
+
+        let cardIndex = 0;
+        const fcInner = document.getElementById('fc-inner');
+
+        function loadCard() {
+            const d = drugs[cardIndex];
+            document.getElementById('fc-name').innerText = d.name;
+            document.getElementById('fc-group').innerText = d.group;
+            document.getElementById('fc-use').innerText = d.use;
+            document.getElementById('fc-side').innerText = d.side;
+            document.getElementById('fc-contra').innerText = d.contra;
+            document.getElementById('fc-count').innerText = `${cardIndex + 1}/${drugs.length}`;
+            fcInner.classList.remove('flipped'); // Reset về mặt trước khi đổi thuốc
+        }
+
+        function flipCard() {
+            fcInner.classList.toggle('flipped');
+        }
+
+        function nextCard(event) {
+            if(event) event.stopPropagation(); // Ngăn kích hoạt flipCard
+            if (cardIndex < drugs.length - 1) { cardIndex++; loadCard(); }
+        }
+
+        function prevCard(event) {
+            if(event) event.stopPropagation();
+            if (cardIndex > 0) { cardIndex--; loadCard(); }
+        }
+
+        // --- DỮ LIỆU TRẮC NGHIỆM ---
+        const questions = [
+    // DƯỢC LÝ (15 câu)
+    { q: "Cơ chế của Aspirin trong chống kết tập tiểu cầu là gì?", opts: ["Ức chế COX-1 không thuận nghịch", "Ức chế COX-2", "Ức chế Phosphodiesterase", "Kích thích thụ thể P2Y12"], ans: 0, exp: "Aspirin ức chế vĩnh viễn COX-1 ở tiểu cầu, ngăn tạo Thromboxane A2." },
+    { q: "Thuốc nào là thuốc giải độc đặc hiệu khi quá liều Paracetamol?", opts: ["Atropin", "Naloxone", "N-Acetylcysteine", "Vitamin K"], ans: 2, exp: "NAC giúp phục hồi kho dự trữ Glutathione để trung hòa chất độc NAPQI." },
+    { q: "Tác dụng phụ gây 'Ho khan' thường gặp ở nhóm thuốc nào?", opts: ["Chẹn kênh calci", "Ức chế men chuyển (ACEI)", "Chẹn Beta", "Lợi tiểu"], ans: 1, exp: "ACEI ngăn cản sự thoái hóa Bradykinin, gây tích tụ chất này ở phổi dẫn đến ho." },
+    { q: "Dược động học bao gồm các quá trình nào?", opts: ["Hấp thu, Chuyển hóa", "Hấp thu, Phân bố, Chuyển hóa, Thải trừ", "Tác dụng và Cơ chế", "Độc tính và Chỉ định"], ans: 1, exp: "Quy tắc ADME: Absorption, Distribution, Metabolism, Elimination." },
+    { q: "Kháng sinh nhóm Aminoglycosid (như Gentamicin) có độc tính chính là gì?", opts: ["Độc thận và thính giác", "Độc gan", "Gây sụn đầu xương", "Gây xám răng"], ans: 0, exp: "Aminoglycosid tích tụ ở nội dịch tai trong và vỏ thận gây độc mạnh." },
+    { q: "Thuốc nào dùng để cấp cứu sốc phản vệ hàng đầu?", opts: ["Dexamethasone", "Adrenaline", "Diphenhydramine", "Salbutamol"], ans: 1, exp: "Adrenaline là thuốc thiết yếu nhất để nâng huyết áp và giãn phế quản trong sốc phản vệ." },
+    { q: "Cơ chế tác dụng của kháng sinh nhóm Penicillin là gì?", opts: ["Ức chế tổng hợp protein", "Ức chế tổng hợp vách tế bào", "Ức chế sao chép DNA", "Hủy hoại màng tế bào"], ans: 1, exp: "Penicillin gắn vào PBP ngăn cản tạo cầu nối peptidoglycan của vách vi khuẩn." },
+    { q: "Chỉ số điều trị (TI) càng lớn thì thuốc càng...?", opts: ["Độc", "An toàn", "Kém tác dụng", "Đắt tiền"], ans: 1, exp: "TI = TD50/ED50. Khoảng cách giữa liều có độc và liều có tác dụng càng xa thì càng an toàn." },
+    { q: "Phản ứng có hại của thuốc được viết tắt là gì?", opts: ["ADR", "TDM", "GCP", "ADME"], ans: 0, exp: "ADR: Adverse Drug Reaction." },
+    { q: "Thuốc nào dùng cho người bệnh nhược cơ?", opts: ["Atropin", "Neostigmin", "Pancuronium", "Scopolamin"], ans: 1, exp: "Neostigmin ức chế cholinesterase làm tăng nồng độ Acetylcholin tại khe synap." },
+    { q: "Atropin có tác dụng gì?", opts: ["Co đồng tử", "Giãn đồng tử, giảm tiết dịch", "Hạ huyết áp", "Chậm nhịp tim"], ans: 1, exp: "Atropin là thuốc kháng Cholinergic (đối kháng hệ M)." },
+    { q: "Nhóm thuốc Statin nên uống vào thời điểm nào tốt nhất?", opts: ["Sáng sớm", "Trưa", "Tối", "Lúc đói"], ans: 2, exp: "Quá trình tổng hợp cholesterol nội sinh xảy ra mạnh nhất vào ban đêm." },
+    { q: "Warfarin có tác dụng gì?", opts: ["Chống đông máu", "Cầm máu", "Tan huyết khối", "Hạ mỡ máu"], ans: 0, exp: "Warfarin là thuốc kháng Vitamin K đường uống." },
+    { q: "Tác dụng phụ 'Răng xỉn màu' là do kháng sinh nào ở trẻ em?", opts: ["Amoxicillin", "Tetracyclin", "Erythromycin", "Ofloxacin"], ans: 1, exp: "Tetracyclin tạo phức chelat với Calci răng gây biến màu răng vĩnh viễn ở trẻ dưới 8 tuổi." },
+    { q: "Thải trừ thuốc chủ yếu qua đâu?", opts: ["Mồ hôi", "Phổi", "Thận", "Mật"], ans: 2, exp: "Thận là cơ quan thải trừ chính các thuốc tan trong nước." },
+
+    // HÓA DƯỢC - BÀO CHẾ - DƯỢC LIỆU (30 câu tiếp theo - Tóm lược)
+    { q: "Dạng thuốc nào có sinh khả dụng luôn là 100%?", opts: ["Viên nén", "Thuốc tiêm tĩnh mạch (IV)", "Thuốc đặt trực tràng", "Siro"], ans: 1, exp: "Tiêm IV đưa thuốc trực tiếp vào máu, bỏ qua giai đoạn hấp thu." },
+    { q: "Tá dược trơn trong sản xuất viên nén thường dùng là gì?", opts: ["Magnesi stearat", "Lactose", "Tinh bột", "Gelatin"], ans: 0, exp: "Magnesi stearat giúp giảm ma sát giữa bột thuốc và chày cối." },
+    { q: "Trong dược liệu, nhóm hoạt chất nào có phản ứng với thuốc thử Alkaloid (như Mayer)?", opts: ["Saponin", "Alkaloid", "Flavonoid", "Tanin"], ans: 1, exp: "Alkaloid thường tạo tủa với các thuốc thử chung của nó." },
+    { q: "Thành phần hoạt chất chính trong củ Nghệ là gì?", opts: ["Menthol", "Curcumin", "Berberin", "Quinin"], ans: 1, exp: "Curcumin tạo nên màu vàng và tác dụng sinh học của Nghệ." },
+    { q: "Thuốc thử đặc trưng để định tính Tanin là gì?", opts: ["FeCl3", "Thuốc thử Fehling", "Nước cất", "Dịch cồn"], ans: 0, exp: "Tanin tạo phức màu xanh đen hoặc xanh rêu với muối Sắt (III)." },
+    { q: "Bảo quản thuốc ở nhiệt độ phòng là bao nhiêu?", opts: ["15-30 độ C", "2-8 độ C", "Dưới 0 độ C", "30-40 độ C"], ans: 0, exp: "Nhiệt độ phòng tiêu chuẩn thường quy định từ 15-30 độ C." },
+    { q: "Viên bao tan trong ruột giúp thuốc tránh được môi trường nào?", opts: ["Dịch mật", "Dịch vị dạ dày", "Nước bọt", "Máu"], ans: 1, exp: "Lớp bao giúp thuốc không bị phân hủy bởi pH acid dạ dày." },
+    { q: "Cây Thuốc phiện chứa alkaloid chính nào có tác dụng giảm đau?", opts: ["Caffein", "Morphin", "Nicotin", "Ephedrin"], ans: 1, exp: "Morphin được chiết xuất từ nhựa quả cây Thuốc phiện." },
+    { q: "Dược liệu chứa Saponin có tính chất đặc trưng gì?", opts: ["Tạo bọt khi lắc với nước", "Vị đắng mạnh", "Màu đỏ rực", "Mùi thơm"], ans: 0, exp: "Saponin có cấu trúc làm giảm sức căng bề mặt, gây tạo bọt bền." },
+    { q: "Phương pháp chiết xuất tinh dầu phổ biến nhất?", opts: ["Ngấm kiệt", "Hầm", "Chưng cất lôi cuốn hơi nước", "Ép lạnh"], ans: 2, exp: "Tinh dầu bay hơi theo hơi nước nên thường dùng phương pháp này." },
+    { q: "Thuốc nhỏ mắt cần phải đảm bảo điều kiện nào?", opts: ["Vô khuẩn", "Màu đẹp", "Vị ngọt", "Dạng rắn"], ans: 0, exp: "Thuốc nhỏ mắt tiếp xúc niêm mạc nhạy cảm nên bắt buộc vô khuẩn." },
+    { q: "Hệ thống quản lý chất lượng tại nhà máy dược phẩm gọi là?", opts: ["GPP", "GMP", "GSP", "GLP"], ans: 1, exp: "GMP: Good Manufacturing Practice - Thực hành tốt sản xuất thuốc." },
+    { q: "Nhà thuốc đạt chuẩn gọi là gì?", opts: ["GPP", "GDP", "GSP", "GLP"], ans: 0, exp: "GPP: Good Pharmacy Practice - Thực hành tốt cơ sở bán lẻ thuốc." },
+    { q: "Dược liệu 'Hoàng liên' chứa hoạt chất chính là gì?", opts: ["Curcumin", "Berberin", "Artesunat", "Rutozid"], ans: 1, exp: "Berberin là alkaloid chính trong Hoàng liên, dùng trị tiêu chảy." },
+    { q: "Thuốc đặt trực tràng thường dùng tá dược nào?", opts: ["Bơ ca cao", "Nước", "Cồn", "Đường"], ans: 0, exp: "Bơ ca cao chảy lỏng ở nhiệt độ cơ thể (37 độ C)." },
+    { q: "Hoạt chất nào trong lá Trà, Cà phê gây kích thích thần kinh?", opts: ["Caffein", "Tanin", "Saponin", "Glycosid"], ans: 0, exp: "Caffein thuộc nhóm alkaloid nhân purin gây hưng phấn trung ương." },
+    { q: "Kháng sinh chiết xuất từ nấm Penicillium là?", opts: ["Streptomycin", "Penicillin", "Neomycin", "Kanamycin"], ans: 1, exp: "Fleming phát hiện ra Penicillin từ nấm Penicillium notatum." },
+    { q: "Vitamin nào tan trong dầu?", opts: ["Vitamin B, C", "Vitamin A, D, E, K", "Vitamin H", "Vitamin P"], ans: 1, exp: "Ghi nhớ: 'Anh Đi Em Khóc'." },
+    { q: "Tác dụng chính của Vitamin C là gì?", opts: ["Chống oxy hóa, bền thành mạch", "Tăng thị lực", "Cầm máu", "Đông máu"], ans: 0, exp: "Vitamin C tham gia tổng hợp collagen và chống gốc tự do." },
+    { q: "Thuốc nào sau đây là thuốc hạ huyết áp nhóm chẹn Beta?", opts: ["Atenolol", "Lisinopril", "Losartan", "Nifedipin"], ans: 0, exp: "Các thuốc đuôi -olol thuộc nhóm chẹn Beta." },
+    { q: "Thành phần hóa học chính của tinh dầu Bạc hà là?", opts: ["Citral", "Menthol", "Cineol", "Eugenol"], ans: 1, exp: "Menthol tạo cảm giác mát lạnh đặc trưng của Bạc hà." },
+    { q: "Loại đường nào thường dùng làm tá dược độn trong viên nén?", opts: ["Glucose", "Lactose", "Fructose", "Galactose"], ans: 1, exp: "Lactose dễ dập viên và ít hút ẩm." },
+    { q: "Kỹ thuật 'Dập thẳng' dùng trong sản xuất gì?", opts: ["Thuốc tiêm", "Viên nén", "Siro", "Thuốc mỡ"], ans: 1, exp: "Dập thẳng giúp tiết kiệm thời gian và tránh độ ẩm cho viên nén." },
+    { q: "Hoạt chất chiết xuất từ cây Thanh hao hoa vàng trị sốt rét là?", opts: ["Quinin", "Artemisinin", "Chloroquin", "Mefloquin"], ans: 1, exp: "GS. Đồ U U nhận giải Nobel nhờ tìm ra Artemisinin." },
+    { q: "Thuốc thảo dược 'Diệp hạ châu' dùng chủ yếu cho bệnh gì?", opts: ["Tiểu đường", "Viêm gan, giải độc gan", "Ho", "Đau khớp"], ans: 1, exp: "Diệp hạ châu (chó đẻ răng cưa) nổi tiếng với tác dụng hạ men gan." },
+    { q: "Dược điển Việt Nam hiện tại là phiên bản mấy?", opts: ["IV", "V", "VI", "III"], ans: 1, exp: "Hiện nay chúng ta đang áp dụng Dược điển Việt Nam V." }
+        ];
+    
+        let quizIndex = 0;
+
+        function loadQuiz() {
+            const item = questions[quizIndex];
+            document.getElementById('q-text').innerText = `Câu ${quizIndex + 1}: ${item.q}`;
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('btn-next-quiz').style.display = 'none';
+
+            const optsDiv = document.getElementById('q-options');
+            optsDiv.innerHTML = '';
+
+            item.opts.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(btn, idx, item.ans, item.exp);
+                optsDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btn, selected, correct, explanation) {
+            // Disable tất cả các nút
+            const allBtns = document.querySelectorAll('.quiz-option');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selected === correct) {
+                btn.classList.add('correct');
+            } else {
+                btn.classList.add('wrong');
+                allBtns[correct].classList.add('correct'); // Hiện đáp án đúng
+            }
+
+            document.getElementById('explain-text').innerText = explanation;
+            document.getElementById('explanation').style.display = 'block';
+            document.getElementById('btn-next-quiz').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            if (quizIndex < questions.length - 1) {
+                quizIndex++;
+                loadQuiz();
+            } else {
+                alert("Chúc mừng! Bạn đã hoàn thành bài kiểm tra.");
+                quizIndex = 0;
+                loadQuiz();
+            }
+        }
+
+        // --- KHỞI TẠO BAN ĐẦU ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCard(); // Nạp dữ liệu Flashcard đầu tiên
+            loadQuiz(); // Nạp câu hỏi đầu tiên
+        });
+
+    </script>
+</body>
+</html>
